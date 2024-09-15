@@ -9,12 +9,19 @@ namespace MVVM
     public interface IReactivePropertyValue : IReactiveProperty
     {
     }
-
-    public interface IReactiveProperty<T> : IReactivePropertyValue
+    
+    public interface IReadOnlyReactiveProperty<out T> : IReactivePropertyValue
     {
-        T Value { get; set; }
+        T Value { get; }
         void Subscribe(Action<T> action);
         void UnSubscribe(Action<T> action);
+    }
+
+    public interface IReactiveProperty<T> : IReadOnlyReactiveProperty<T>
+    {
+        new T Value { get; set; }
+
+        void SetWithoutNotify(T value);
     }
 
     public interface IReactiveEvent : IReactiveProperty
@@ -27,4 +34,5 @@ namespace MVVM
     public interface IReactiveList : IReactiveProperty
     {
     }
+    
 }

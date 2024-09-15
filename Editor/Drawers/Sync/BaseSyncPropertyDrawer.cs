@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,15 +21,16 @@ namespace MVVM.Editor
             var nameProperty = property.FindPropertyRelative("_propertyName");
 
             var afterLabelPosition = EditorGUI.PrefixLabel(position, label);
-            afterLabelPosition.width /= 2;
+            afterLabelPosition.width /= 3f;
             EditorGUI.ObjectField(afterLabelPosition, targetProperty, GUIContent.none);
 
             afterLabelPosition.x += afterLabelPosition.width;
+            afterLabelPosition.width *= 2f;
             if (EditorGUI.DropdownButton(afterLabelPosition, DropdownContent(targetProperty, nameProperty),
                     FocusType.Keyboard))
             {
                 //Debug.Log($"{property.displayName} DropdownButton");
-                AddDropdown(targetProperty, nameProperty, property);
+                AddDropdown(targetProperty, nameProperty, fieldInfo);
             }
 
             ClearNameProperty(targetProperty, nameProperty);
@@ -55,7 +57,7 @@ namespace MVVM.Editor
 
         private static string GetName(SerializedProperty targetProperty, SerializedProperty nameProperty)
         {
-            return $"{targetProperty.objectReferenceValue.GetType().Name}.{nameProperty.stringValue}";
+            return $"{nameProperty.stringValue}";
         }
 
         private static string GetName(Component c, string propertyName)
@@ -71,9 +73,11 @@ namespace MVVM.Editor
         }
 
         private void AddDropdown(SerializedProperty targetProperty, SerializedProperty nameProperty,
-            SerializedProperty parentProperty)
+            FieldInfo info)
         {
-            var genericType = parentProperty.GetGenericTypeArguments();
+            var genericType = fieldInfo.FieldType.GenericTypeArguments.Length > 0
+                ? fieldInfo.FieldType.GenericTypeArguments[0]
+                : null;
             GenericMenu nodesMenu = new GenericMenu();
             var go = targetProperty.objectReferenceValue as GameObject ??
                      (targetProperty.objectReferenceValue as Component)?.gameObject;
